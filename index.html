@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online DCR 8084106</title>
+    
+    <link rel="stylesheet" href="style.css" />
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Roboto', Arial, sans-serif;
+            overflow: hidden;
+            background-color: #282828;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background-color: #3c3c3c;
+            color: #f1f1f1;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: space-between;
+        }
+
+        .toolbar-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .icon-btn {
+            color: #f1f1f1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .icon-btn:hover { background-color: rgba(255,255,255,0.1); }
+
+        .deactive {
+            opacity: 0.4;
+            cursor: default;
+            pointer-events: none; 
+        }
+
+        .small-arrow {
+            font-size: 14px !important;
+            margin-left: -4px;
+        }
+
+        .title { font-size: 14px; font-weight: 500; margin-left: 8px; margin-right: 15px; white-space: nowrap; }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            background-color: #202124;
+            padding: 0px 8px;
+            border-radius: 4px;
+            height: 32px;
+        }
+
+        .zoom-text { width: 45px; text-align: center; font-size: 13px; }
+
+        .divider { width: 1px; height: 20px; background-color: #5f6368; margin: 0 8px; }
+
+        /* Layout */
+        .content-area {
+            display: flex;
+            flex: 1;
+            height: calc(100% - 56px);
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            display: none; /* ডিফল্টভাবে একটিভ করা হয়েছে */
+            width: 200px;
+            background-color: #323639;
+            border-right: 1px solid rgba(0,0,0,0.2);
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            overflow-y: auto;
+            transition: 0.3s;
+        }
+
+        .thumbnail {
+            width: 120px;
+            border: 2px solid transparent; /* ডিফল্ট বর্ডার ইনভিজিবল */
+            border-radius: 2px;
+            cursor: pointer;
+            background-color: white;
+            margin-bottom: 5px;
+            transition: border 0.3s;
+        }
+
+        /* একটিভ থাম্বনেইল বর্ডার */
+        .active-thumbnail {
+            border: 2px solid #8ab4f8 !important;
+        }
+
+        .page-num { color: #f1f1f1; font-size: 12px; margin-bottom: 20px; }
+
+        /* Viewer Area */
+        .viewer {
+            flex: 1;
+            overflow: auto;
+            display: block;
+            text-align: center;
+            padding: 40px 15px;
+        }
+
+        .main-img {
+            width: 850px;
+            max-width: 95%; 
+            height: auto;
+            display: inline-block;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            background-color: white;
+            transform-origin: top center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .copilot-btn {
+            background-color: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 4px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #f1f1f1;
+            margin-left: 8px;
+        }
+         
+/* মোবাইল ফোনের জন্য ফুল স্ক্রিন এবং ক্রোম ব্যাকগ্রাউন্ড */
+@media only screen and (max-width: 600px) {
+    .toolbar {
+        display: none !important; /* উপরের বার হাইড করবে */
+    }
+    
+    body, html {
+        background-color: #fff8f0 !important; /* ক্রোমের ডার্ক মোড ব্যাকগ্রাউন্ড কালার */
+    }
+
+    .content-area {
+        height: 100% !important;
+    }
+
+    .viewer {
+        padding: 0 !important; /* সাইডের সব ফাঁকা জায়গা (Padding) রিমুভ করবে */
+        display: flex;
+        align-items: center; /* ইমেজ যাতে একদম উপর থেকে শুরু হয় */
+        justify-content: center;
+        background-color: #fff8f0;
+    }
+
+    .main-img {
+        width: 100% !important; /* ফুল স্ক্রিন উইডথ */
+        max-width: 100% !important;
+        margin: 0 !important;
+        box-shadow: none !important; /* বর্ডার শ্যাডো সরিয়ে দিলে ক্লিন দেখাবে */
+        border-radius: 0 !important;
+    }
+}
+  
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <div class="toolbar-section">
+            <!-- ৩-লাইন মেনু বাটন দিয়ে সাইডবার কন্ট্রোল -->
+            <div class="icon-btn" onclick="toggleSidebar()"><span class="material-symbols-outlined">menu</span></div>
+            <div class="divider"></div>
+            <div class="icon-btn deactive">
+                <span class="material-symbols-outlined">draw</span>
+                <span class="material-symbols-outlined small-arrow">keyboard_arrow_down</span>
+            </div>
+            <div class="icon-btn deactive">
+                <span class="material-symbols-outlined">ink_highlighter</span>
+                <span class="material-symbols-outlined small-arrow">keyboard_arrow_down</span>
+            </div>
+            <div class="icon-btn deactive"><span class="material-symbols-outlined">ink_eraser</span></div>
+            <div class="divider"></div>
+            <div class="icon-btn deactive"><span class="material-symbols-outlined">text_fields</span></div>
+            <div class="divider"></div>
+            <div class="icon-btn deactive"><span class="material-symbols-outlined">record_voice_over</span></div>
+            <div class="divider"></div>
+            <div class="icon-btn deactive"><span class="material-symbols-outlined">translate</span></div>
+            <div class="divider"></div>
+            <div class="copilot-btn deactive">
+                <span class="material-symbols-outlined" style="font-size: 18px;">auto_awesome</span>
+                <span>Ask Copilot</span>
+                <span class="material-symbols-outlined small-arrow">keyboard_arrow_down</span>
+            </div>
+        </div>
+
+        <div class="toolbar-section">
+            <div class="zoom-controls">
+                <div class="icon-btn" style="width: 28px; height: 28px;" onclick="changeZoom(-10)"><span class="material-symbols-outlined">remove</span></div>
+                <div class="zoom-text" id="zoomPercent">100%</div>
+                <div class="icon-btn" style="width: 28px; height: 28px;" onclick="changeZoom(10)"><span class="material-symbols-outlined">add</span></div>
+            </div>
+            <div class="divider"></div>
+            <div class="icon-btn" onclick="resetZoom()" title="Fit Screen"><span class="material-symbols-outlined">fit_screen</span></div>
+            <div class="icon-btn" onclick="rotateImage()"><span class="material-symbols-outlined">rotate_right</span></div>
+            <div class="divider"></div>
+            <div class="icon-btn" onclick="downloadDocument()" title="Download"><span class="material-symbols-outlined">download</span></div>
+            <div class="icon-btn" onclick="printDocument()" title="Print"><span class="material-symbols-outlined">print</span></div>
+            <div class="icon-btn"><span class="material-symbols-outlined">more_vert</span></div>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div id="sidebar">
+            <!-- এখানে active-thumbnail ক্লাসটি ডিফল্টভাবে দেওয়া হয়েছে -->
+            <img src="DCR.1.2.jpg" class="thumbnail active-thumbnail" alt="Thumbnail" onclick="selectThumbnail(this)">
+            <div class="page-num">Page 1</div>
+        </div>
+
+        <div class="viewer">
+            <img id="documentImage" src="DCR.1.2.jpg" class="main-img" alt="Main Document">
+        </div>
+    </div>
+
+    <script>
+                // মোবাইলের জন্য আলাদা টাইটেল সেট করা
+if (window.innerWidth <= 600) {
+    document.title = "অনলাইন_ডিসির_প্রিন্ট.pdf"; // মোবাইলে যে নাম দেখাতে চান
+} else {
+    document.title = "Online DCR 8084106"; // পিসিতে যে নাম থাকবে
+}
+        // সাইডবার হাইড/শো করার ফাংশন
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.display === 'none') {
+                sidebar.style.display = 'flex';
+            } else {
+                sidebar.style.display = 'none';
+            }
+        }
+
+        // থাম্বনেইল সিলেক্ট করার ফাংশন
+        function selectThumbnail(element) {
+            // আগের সব থাম্বনেইল থেকে বর্ডার রিমুভ করা
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumb => thumb.classList.remove('active-thumbnail'));
+            
+            // ক্লিক করা থাম্বনেইলে বর্ডার এড করা
+            element.classList.add('active-thumbnail');
+            
+            // জুম রিসেট করা (ঐচ্ছিক)
+            resetZoom();
+        }
+
+        let currentZoom = 100;
+        let rotation = 0;
+        const img = document.getElementById('documentImage');
+        const zoomText = document.getElementById('zoomPercent');
+
+        function updateTransform() {
+            img.style.transform = `scale(${currentZoom / 100}) rotate(${rotation}deg)`;
+            if (currentZoom > 100) {
+                img.style.marginBottom = (currentZoom / 2) + "px";
+            } else {
+                img.style.marginBottom = "0px";
+            }
+        }
+
+        function changeZoom(amount) {
+            currentZoom += amount;
+            if (currentZoom < 20) currentZoom = 20;
+            if (currentZoom > 400) currentZoom = 400;
+            zoomText.innerText = currentZoom + '%';
+            updateTransform();
+        }
+
+        function resetZoom() {
+            currentZoom = 100;
+            zoomText.innerText = '100%';
+            updateTransform();
+        }
+
+        function rotateImage() {
+            rotation += 90;
+            updateTransform();
+        }
+
+        function printDocument() { window.print(); }
+
+        function downloadDocument() {
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = 'DCR.1.2.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
